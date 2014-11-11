@@ -14,7 +14,7 @@ public class MovementBehavior : MonoBehaviour {
   }
 
   public void Update() {
-    float angleRad = (_entity.Orientation + 90) * (float)Math.PI / 180;
+    float angleRad = (_entity.orientation + 90) * (float)Math.PI / 180;
     float frameSpeed = Speed * Time.deltaTime;
     float dX = frameSpeed * (float)Math.Cos(angleRad);
     float dZ = frameSpeed * (float)Math.Sin(angleRad);

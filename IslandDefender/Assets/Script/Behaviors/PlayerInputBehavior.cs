@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 public class PlayerInputBehavior : MonoBehaviour {
   public GameObject MainCamera;
-  public bool InputEnabled = true;
+  public float RotationSpeed;
+  public bool InputEnabled;
 
   private ShipEntity _entity;
 
@@ -18,9 +19,32 @@ public class PlayerInputBehavior : MonoBehaviour {
       return;
     }
 
-    if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved) {
-      Vector2 touchDelta = Input.GetTouch(0).deltaPosition;
-      _entity.Orientation -= touchDelta.y;
+    int i = 0;
+    while (i < Input.touchCount) {
+      if (Input.GetTouch(i).phase == TouchPhase.Moved) {
+	Vector2 touchDelta = Input.GetTouch(i).deltaPosition;
+	float targetAngle = (float)(Math.Atan2(touchDelta.y, touchDelta.x) * 180 / Math.PI) - 135;
+	if (targetAngle < 0) {
+	  targetAngle += 360;
+	}
+
+	float rotSpeed = RotationSpeed * Time.deltaTime;
+	float angle = _entity.orientation;
+
+	bool ccw = targetAngle < angle;
+	if (Math.Abs(targetAngle - angle) > 180) {
+	  ccw = !ccw;
+	}
+
+	if (Math.Abs(targetAngle - angle) < rotSpeed) {
+	  angle = targetAngle;
+	} else {
+	  angle += (ccw ? -1 : 1) * rotSpeed;     
+	}
+
+	_entity.orientation = angle;
+      }
+      i++;
     }
   }
 
