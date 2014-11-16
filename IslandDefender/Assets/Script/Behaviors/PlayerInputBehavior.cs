@@ -27,8 +27,11 @@ public class PlayerInputBehavior : MonoBehaviour {
 	Vector2 touchDelta = touch.position - _touchStartPos;
 	// 135deg is based on camera angle, will fix later
 	_entity.targetOrientation = (float)(Math.Atan2(touchDelta.y, touchDelta.x) * 180 / Math.PI) - 135;
+
 	_entity.UpdateOrientation();
       }
+
+      _entity.Accelerate();
     }
   }
 
