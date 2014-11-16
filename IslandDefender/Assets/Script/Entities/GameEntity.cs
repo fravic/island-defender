@@ -9,9 +9,9 @@ public abstract class GameEntity : MonoBehaviour {
   public GameObject meshObject = null;
 
   public float rotationSpeed = 90;     // Degrees per second
-  public float maxSpeed = 7;
-  public float acceleration = 5;
-  public float driftDragFactor = 3;
+  public float maxSpeed = 100;
+  public float accelerationForce = 50000;
+  public float driftDragFactor = 200;
 
   private float _targetOrientation = 0;
   public float targetOrientation {
@@ -66,8 +66,8 @@ public abstract class GameEntity : MonoBehaviour {
   void UpdateAccelerationForce() {
     if (_shouldAccelerate) {
       float angleRad = (_orientation + 90) * (float)Math.PI / 180;
-      float dX = (float)Math.Cos(angleRad) * acceleration;
-      float dZ = (float)Math.Sin(angleRad) * acceleration;
+      float dX = (float)Math.Cos(angleRad) * accelerationForce;
+      float dZ = (float)Math.Sin(angleRad) * accelerationForce;
       Vector3 force = new Vector3(dX,0,dZ);
       rigidbody.AddForce(force);
 
