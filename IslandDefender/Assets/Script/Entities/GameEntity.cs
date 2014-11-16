@@ -19,7 +19,7 @@ public abstract class GameEntity : MonoBehaviour {
       return _targetOrientation;
     }
     set {
-      _targetOrientation = BoundAngle(value);
+      _targetOrientation = Utils.BoundAngle(value);
     }
   }
 
@@ -29,7 +29,7 @@ public abstract class GameEntity : MonoBehaviour {
       return _orientation;
     }
     set {
-      value = BoundAngle(value);
+      value = Utils.BoundAngle(value);
       float dO = _orientation - value;
       meshObject.transform.Rotate(new Vector3(0, 0, dO));
       _orientation = value;
@@ -39,25 +39,9 @@ public abstract class GameEntity : MonoBehaviour {
   private bool _shouldAccelerate;
 
   public void FixedUpdate() {
-    if (_shouldAccelerate) {
-      float angleRad = (_orientation + 90) * (float)Math.PI / 180;
-      float dX = (float)Math.Cos(angleRad) * acceleration;
-      float dZ = (float)Math.Sin(angleRad) * acceleration;
-      Vector3 force = new Vector3(dX,0,dZ);
-      rigidbody.AddForce(force);
-
-      _shouldAccelerate = false;
-    }
-
-    rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity, maxSpeed);
-
-    // "Water" acts against perpendicular movement (drift)
-    Vector3 rightDrift = Quaternion.Euler(0,-_orientation+90,0) * Vector3.forward;
-    Vector3 undrift = Vector3.Project(-rigidbody.velocity * driftDragFactor, rightDrift);
-    rigidbody.AddForce(undrift);
-
-    Debug.DrawLine(rigidbody.position, rigidbody.position + undrift, Color.red);
-    Debug.DrawLine(rigidbody.position, rigidbody.position + rigidbody.velocity, Color.green);
+    UpdateAccelerationForce();
+    LimitVelocity();
+    UpdateWaterForce();
   }
 
   public void UpdateOrientation() {
@@ -79,10 +63,29 @@ public abstract class GameEntity : MonoBehaviour {
     _shouldAccelerate = true;
   }
 
-  float BoundAngle(float value) {
-    while (value >= 360) value -= 360;
-    while (value < 0) value += 360;
-    return value;
+  void UpdateAccelerationForce() {
+    if (_shouldAccelerate) {
+      float angleRad = (_orientation + 90) * (float)Math.PI / 180;
+      float dX = (float)Math.Cos(angleRad) * acceleration;
+      float dZ = (float)Math.Sin(angleRad) * acceleration;
+      Vector3 force = new Vector3(dX,0,dZ);
+      rigidbody.AddForce(force);
+
+      _shouldAccelerate = false;
+    }
   }
 
+  void LimitVelocity() {
+    rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity, maxSpeed);
+
+    Debug.DrawLine(rigidbody.position, rigidbody.position + rigidbody.velocity, Color.green);
+  }
+
+  void UpdateWaterForce() {
+    Vector3 rightDrift = Quaternion.Euler(0,-_orientation+90,0) * Vector3.forward;
+    Vector3 undrift = Vector3.Project(-rigidbody.velocity * driftDragFactor, rightDrift);
+    rigidbody.AddForce(undrift);
+
+    Debug.DrawLine(rigidbody.position, rigidbody.position + undrift, Color.red);
+  }
 }
