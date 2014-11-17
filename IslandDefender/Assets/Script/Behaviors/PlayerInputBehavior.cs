@@ -9,6 +9,7 @@ public class PlayerInputBehavior : MonoBehaviour {
   private ShipEntity _entity;
   private Queue<Vector2> _pastTouchDeltas = new Queue<Vector2>();
   private Vector2 _lastRegTouchPos;
+  private Vector2 _touchStartPos;
 
   private const int _minTouchDelta = 6;
   private const int _avgTouchCount = 5;
@@ -24,8 +25,10 @@ public class PlayerInputBehavior : MonoBehaviour {
     
     if (Input.touchCount > 0) {
       Touch touch = Input.GetTouch(0);
+
       if (touch.phase == TouchPhase.Began) {
 	_lastRegTouchPos = touch.position;
+	_touchStartPos = touch.position;
 
       } else if (touch.phase == TouchPhase.Moved) {
 	Vector2 touchDelta = touch.position - _lastRegTouchPos;
@@ -43,6 +46,10 @@ public class PlayerInputBehavior : MonoBehaviour {
 	}
 
       } else if (touch.phase == TouchPhase.Ended) {
+	if ((touch.position - _touchStartPos).magnitude < _minTouchDelta) {
+	  _entity.FireCannons();
+	}
+
 	_entity.targetOrientation = _entity.orientation;
       }
 
