@@ -3,16 +3,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class PlayerInputBehavior : MonoBehaviour {
+public class PlayerMovementInputBehavior : MonoBehaviour {
   public bool inputEnabled;
 
   private ShipEntity _entity;
-  private Queue<Vector2> _pastTouchDeltas = new Queue<Vector2>();
-  private Vector2 _lastRegTouchPos;
-  private Vector2 _touchStartPos;
 
+  private float _lastAngle;
+  private Vector2 _lastRegTouchPos;
   private const int _minTouchDelta = 6;
-  private const int _avgTouchCount = 5;
 
   public void Awake() {
     _entity = gameObject.GetComponent<ShipEntity>();
@@ -28,28 +26,33 @@ public class PlayerInputBehavior : MonoBehaviour {
 
       if (touch.phase == TouchPhase.Began) {
 	_lastRegTouchPos = touch.position;
-	_touchStartPos = touch.position;
 
       } else if (touch.phase == TouchPhase.Moved) {
 	Vector2 touchDelta = touch.position - _lastRegTouchPos;
 	if (touchDelta.magnitude > _minTouchDelta) {
 	  _lastRegTouchPos = touch.position;
 
-	  _pastTouchDeltas.Enqueue(touchDelta);
-	  if (_pastTouchDeltas.Count > _avgTouchCount) {
-	    _pastTouchDeltas.Dequeue();
-	  }
+	  float angle = (float)Math.Atan2(touch.deltaPosition.y, touch.deltaPosition.x) * 180 / (float)Math.PI;
+	  angle = Utils.BoundAngle(angle);
 
-	  // 135deg is based on camera angle, will fix later
-	  Vector2 avg = Utils.AvgVector2(_pastTouchDeltas.ToArray());
-	  _entity.targetOrientation = (float)(Math.Atan2(avg.y, avg.x) * 180 / Math.PI) - 135;
+	  if (angle != _lastAngle) {
+	    if (angle > 270 && _lastAngle < 90) {
+	      _lastAngle += 360;
+	    } else if (_lastAngle > 270 && angle < 90) {
+	      angle += 360;
+	    }
+
+	    bool clockwise = (angle - _lastAngle > 0);
+	    if (clockwise) {
+	      _entity.targetOrientation += 3;
+	    } else {
+	      _entity.targetOrientation -= 3;
+	    }
+	    _lastAngle = angle;
+	  }
 	}
 
       } else if (touch.phase == TouchPhase.Ended) {
-	if ((touch.position - _touchStartPos).magnitude < _minTouchDelta) {
-	  _entity.FireCannons();
-	}
-
 	_entity.targetOrientation = _entity.orientation;
       }
 

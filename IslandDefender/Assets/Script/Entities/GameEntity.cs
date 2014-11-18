@@ -85,7 +85,5 @@ public abstract class GameEntity : MonoBehaviour {
     Vector3 rightDrift = Quaternion.Euler(0,-_orientation+90,0) * Vector3.forward;
     Vector3 undrift = Vector3.Project(-rigidbody.velocity * driftDragFactor, rightDrift);
     rigidbody.AddForce(undrift);
-
-    Debug.DrawLine(rigidbody.position, rigidbody.position + undrift, Color.red);
   }
 }
