@@ -19,4 +19,12 @@ public class Utils {
     }
     return new Vector2(x, y) / vectors.Count;
   }
+
+  public static float SumArray(IList array, float init) {
+    float sum = init;
+    foreach (float i in array) {
+      sum = sum + i;
+    }
+    return sum;
+  }
 }

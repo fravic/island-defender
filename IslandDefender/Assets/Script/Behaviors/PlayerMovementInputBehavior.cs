@@ -9,11 +9,14 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
   private ShipEntity _entity;
 
   private float _lastAngle;
+  private Queue<float> _angleDiffs;
   private Vector2 _lastRegTouchPos;
-  private const int _minTouchDelta = 6;
+
+  private const int _minTouchDelta = 5;
 
   public void Awake() {
     _entity = gameObject.GetComponent<ShipEntity>();
+    _angleDiffs = new Queue<float>();
   }
 
   public void Update() {
@@ -26,34 +29,40 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
 
       if (touch.phase == TouchPhase.Began) {
 	_lastRegTouchPos = touch.position;
+	_lastAngle = 1000; // 'Unset' flag: refactor this
+	_angleDiffs.Clear();
 
       } else if (touch.phase == TouchPhase.Moved) {
 	Vector2 touchDelta = touch.position - _lastRegTouchPos;
 	if (touchDelta.magnitude > _minTouchDelta) {
 	  _lastRegTouchPos = touch.position;
-
 	  float angle = (float)Math.Atan2(touch.deltaPosition.y, touch.deltaPosition.x) * 180 / (float)Math.PI;
 	  angle = Utils.BoundAngle(angle);
 
-	  if (angle != _lastAngle) {
+	  if (angle != _lastAngle && _lastAngle != 1000) {
 	    if (angle > 270 && _lastAngle < 90) {
 	      _lastAngle += 360;
 	    } else if (_lastAngle > 270 && angle < 90) {
 	      angle += 360;
 	    }
-
-	    bool clockwise = (angle - _lastAngle > 0);
-	    if (clockwise) {
-	      _entity.targetOrientation += 3;
-	    } else {
-	      _entity.targetOrientation -= 3;
-	    }
-	    _lastAngle = angle;
+	    _angleDiffs.Enqueue(angle - _lastAngle);
 	  }
+	  _lastAngle = Utils.BoundAngle(angle);
+	}
+
+	if (_angleDiffs.Count > 5) {
+	  float sum = Utils.SumArray(_angleDiffs.ToArray(), 0.0f);
+	  if (sum > 20) {
+	    _entity.targetOrientation += 20;
+	  } else if (sum < -20) {
+	    _entity.targetOrientation -= 20;
+	  }
+	  _angleDiffs.Clear();
 	}
 
       } else if (touch.phase == TouchPhase.Ended) {
 	_entity.targetOrientation = _entity.orientation;
+
       }
 
       _entity.UpdateOrientation();
