@@ -31,14 +31,14 @@ public abstract class GameEntity : MonoBehaviour {
     set {
       value = Utils.BoundAngle(value);
       float dO = _orientation - value;
-      meshObject.transform.Rotate(new Vector3(0, 0, dO));
+      this.transform.Rotate(new Vector3(0, dO, 0));
       _orientation = value;
     }
   }
 
   private bool _shouldAccelerate;
 
-  public void FixedUpdate() {
+  public virtual void FixedUpdate() {
     UpdateAccelerationForce();
     LimitVelocity();
     UpdateWaterForce();
