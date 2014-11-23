@@ -8,82 +8,64 @@ public abstract class GameEntity : MonoBehaviour {
 
   public GameObject meshObject = null;
 
-  public float rotationSpeed = 90;     // Degrees per second
   public float maxSpeed = 100;
-  public float accelerationForce = 50000;
-  public float driftDragFactor = 200;
-
-  private float _targetOrientation = 0;
-  public float targetOrientation {
-    get {
-      return _targetOrientation;
-    }
-    set {
-      _targetOrientation = Utils.BoundAngle(value);
-    }
-  }
-
-  private float _orientation;
-  public float orientation {
-    get {
-      return _orientation;
-    }
-    set {
-      value = Utils.BoundAngle(value);
-      float dO = _orientation - value;
-      this.transform.Rotate(new Vector3(0, dO, 0));
-      _orientation = value;
-    }
-  }
+  public float acceleration = 500;
+  public float radialAcceleration = 20;
+  public float driftDrag = 20;
 
   private bool _shouldAccelerate;
+  private int _shouldApplyTorqueDir;
 
-  public virtual void FixedUpdate() {
-    UpdateAccelerationForce();
-    LimitVelocity();
-    UpdateWaterForce();
+  public float orientation {
+    get {
+      return -(rigidbody.rotation.eulerAngles.y - 90);
+    }
   }
 
-  public void UpdateOrientation() {
-    float rotSpeed = rotationSpeed * (rigidbody.velocity.magnitude / maxSpeed) * Time.deltaTime;
-
-    bool ccw = _targetOrientation < _orientation;
-    if (Math.Abs(_targetOrientation - _orientation) > 180) {
-      ccw = !ccw;
-    }
-
-    if (Math.Abs(_targetOrientation - _orientation) < rotSpeed) {
-      this.orientation = _targetOrientation;
-    } else {
-      this.orientation += (ccw ? -1 : 1) * rotSpeed;
-    }
+  public virtual void FixedUpdate() {
+    UpdateAcceleration();
+    UpdateTorque();
+    LimitVelocity();
+    UpdateWaterForce();
   }
 
   public void Accelerate() {
     _shouldAccelerate = true;
   }
 
-  void UpdateAccelerationForce() {
+  // torque = 1 is cw, -1 is ccw, 0 is no torque
+  public void RadialAccelerate(int torqueDir) {
+    _shouldApplyTorqueDir = torqueDir;
+  }
+
+  void UpdateAcceleration() {
     if (_shouldAccelerate) {
-      float angleRad = (_orientation + 90) * (float)Math.PI / 180;
-      float dX = (float)Math.Cos(angleRad) * accelerationForce;
-      float dZ = (float)Math.Sin(angleRad) * accelerationForce;
+      float orientationRad = this.orientation * (float)Math.PI / 180;
+      float dX = (float)Math.Cos(orientationRad) * acceleration;
+      float dZ = (float)Math.Sin(orientationRad) * acceleration;
       Vector3 force = new Vector3(dX,0,dZ);
-      rigidbody.AddForce(force);
+      rigidbody.AddForce(force, ForceMode.Acceleration);
 
       _shouldAccelerate = false;
     }
   }
 
+  void UpdateTorque() {
+    if (_shouldApplyTorqueDir != 0) {
+      Vector3 torque = Vector3.up * _shouldApplyTorqueDir * radialAcceleration;
+      rigidbody.AddTorque(torque);
+
+      _shouldApplyTorqueDir = 0;
+    }
+  }
+
   void LimitVelocity() {
     rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity, maxSpeed);
-
-    Debug.DrawLine(rigidbody.position, rigidbody.position + rigidbody.velocity, Color.green);
   }
 
   void UpdateWaterForce() {
-    Vector3 rightDrift = Quaternion.Euler(0,-_orientation+90,0) * Vector3.forward;
-    Vector3 undrift = Vector3.Project(-rigidbody.velocity * driftDragFactor, rightDrift);
-    rigidbody.AddForce(undrift);
+    Vector3 rightDrift = Quaternion.Euler(0,-this.orientation,0) * Vector3.forward;
+    Vector3 undrift = Vector3.Project(-rigidbody.velocity * driftDrag, rightDrift);
+    rigidbody.AddForce(undrift, ForceMode.Acceleration);
   }
 }

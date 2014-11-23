@@ -32,7 +32,6 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
 	TouchMoved(touch);
       }
 
-      _entity.UpdateOrientation();
       _entity.Accelerate();
     }
   }
@@ -46,8 +45,10 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
   private void TouchMoved(Touch touch) {
     if (_touchDistV.IsValid(touch)) {
       float angleDiff = _angleDiffT.Transform(touch);
-      float force = _angleQueueT.Transform(angleDiff);
-      _entity.targetOrientation += force;
+      int torque = _angleQueueT.Transform(angleDiff);
+      if (torque != 0) {
+	_entity.RadialAccelerate(torque);
+      }
     }
   }
 
@@ -101,7 +102,7 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
 	} else if (_lastAngle > 270 && angle < 90) {
 	  angle += 360;
 	}
-	diff = angle - _lastAngle;
+	diff = -(angle - _lastAngle);
       }
 
       SetLastAngle(angle);
@@ -120,15 +121,14 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
 
 
   /* AngleQueueTransformer keeps a queue of angle differences until it gets
-     big enough, then returns a force vector to apply to the entity. */
+     big enough, then returns a direction to rotate, cw or ccw. */
   private class AngleQueueTransformer {
     private const int ANGLE_DIFFS_NEEDED = 5;
-    private const float FORCE_MULTIPLIER = 20;
     private const float MIN_NECESSARY_SUM = 10;
 
     private Queue<float> _angleDiffs = new Queue<float>();
 
-    public float Transform(float input) {
+    public int Transform(float input) {
       if (input == 0) return 0;
 
       _angleDiffs.Enqueue(input);
@@ -137,9 +137,9 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
 	_angleDiffs.Clear();
 
 	if (sum > MIN_NECESSARY_SUM) {
-	  return FORCE_MULTIPLIER;
+	  return 1;
 	} else if (sum < -MIN_NECESSARY_SUM) {
-	  return -FORCE_MULTIPLIER;
+	  return -1;
 	}
       }
       return 0;
