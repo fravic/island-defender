@@ -5,8 +5,8 @@ using System.Collections;
 public class ShipEntity : GameEntity {
 
   public GameObject cameraTarget;
-  public GameObject leftCanonfire;
-  public GameObject rightCanonfire;
+  public GameObject leftCannonfire;
+  public GameObject rightCannonfire;
 
   public void Awake() {
   }
@@ -18,8 +18,8 @@ public class ShipEntity : GameEntity {
   }
 
   public void FireCannons() {
-    leftCanonfire.particleSystem.Emit(4);
-    rightCanonfire.particleSystem.Emit(4);
+    leftCannonfire.particleSystem.Emit(4);
+    rightCannonfire.particleSystem.Emit(4);
   }
 
 }
