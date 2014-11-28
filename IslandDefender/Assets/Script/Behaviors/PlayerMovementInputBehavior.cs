@@ -5,8 +5,10 @@ using System.Collections.Generic;
 
 public class PlayerMovementInputBehavior : MonoBehaviour {
   public bool inputEnabled;
-  private ShipEntity _entity;
+  public GameObject rudderImage;
+  public float rudderRadialAcceleration = 50;
 
+  private ShipEntity _entity;
   private TouchDistValidator _touchDistV;
   private AngleDiffTransformer _angleDiffT;
   private AngleQueueTransformer _angleQueueT;
@@ -48,6 +50,9 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
       int torque = _angleQueueT.Transform(angleDiff);
       if (torque != 0) {
 	_entity.RadialAccelerate(torque);
+
+	Vector3 rudderTorque = new Vector3(0,0,-torque * rudderRadialAcceleration);
+	rudderImage.rigidbody.AddTorque(rudderTorque, ForceMode.Acceleration);
       }
     }
   }
