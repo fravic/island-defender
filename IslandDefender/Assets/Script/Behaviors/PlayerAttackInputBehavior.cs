@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class PlayerAttackInputBehavior : MonoBehaviour {
   public bool inputEnabled;
 
+  private float _attackTouchDuration = .3f;
   private ShipEntity _entity;
   private Dictionary<int,float> _touchDurations = new Dictionary<int,float>();
 
@@ -26,7 +27,7 @@ public class PlayerAttackInputBehavior : MonoBehaviour {
 	_touchDurations[touch.fingerId] = 0;
 
       } else if (touch.phase == TouchPhase.Ended) {
-	if (_touchDurations[touch.fingerId] < .5) {
+	if (_touchDurations[touch.fingerId] < _attackTouchDuration) {
 	  _entity.FireCannons();
 	}
 
@@ -36,6 +37,10 @@ public class PlayerAttackInputBehavior : MonoBehaviour {
       } else {
 	_touchDurations[touch.fingerId] += Time.deltaTime;
 
+      }
+
+      if (_touchDurations[touch.fingerId] > _attackTouchDuration) {
+	_entity.Accelerate();
       }
     }
   }

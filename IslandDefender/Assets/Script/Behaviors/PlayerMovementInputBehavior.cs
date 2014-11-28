@@ -33,8 +33,6 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
       } else if (touch.phase == TouchPhase.Moved) {
 	TouchMoved(touch);
       }
-
-      _entity.Accelerate();
     }
   }
 
@@ -50,6 +48,7 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
       int torque = _angleQueueT.Transform(angleDiff);
       if (torque != 0) {
 	_entity.RadialAccelerate(torque);
+	_entity.Accelerate();
 
 	Vector3 rudderTorque = new Vector3(0,0,-torque * rudderRadialAcceleration);
 	rudderImage.rigidbody.AddTorque(rudderTorque, ForceMode.Acceleration);
