@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class PlayerMovementInputBehavior : MonoBehaviour {
+public class PlayerRotationInputBehavior : MonoBehaviour {
   public bool inputEnabled;
   public GameObject rudderImage;
   public float rudderRadialAcceleration = 50;
@@ -48,7 +48,6 @@ public class PlayerMovementInputBehavior : MonoBehaviour {
       int torque = _angleQueueT.Transform(angleDiff);
       if (torque != 0) {
 	_entity.RadialAccelerate(torque);
-	_entity.Accelerate();
 
 	Vector3 rudderTorque = new Vector3(0,0,-torque * rudderRadialAcceleration);
 	rudderImage.rigidbody.AddTorque(rudderTorque, ForceMode.Acceleration);

@@ -38,10 +38,6 @@ public class PlayerAttackInputBehavior : MonoBehaviour {
 	_touchDurations[touch.fingerId] += Time.deltaTime;
 
       }
-
-      if (_touchDurations[touch.fingerId] > _attackTouchDuration) {
-	_entity.Accelerate();
-      }
     }
   }
 
